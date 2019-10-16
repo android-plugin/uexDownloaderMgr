@@ -1,11 +1,11 @@
 package org.zywx.wbpalmstar.plugin.uexdownloadermgr;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.text.format.Time;
@@ -27,16 +27,12 @@ import org.zywx.wbpalmstar.platform.certificates.Http;
 import org.zywx.wbpalmstar.plugin.uexdownloadermgr.vo.CreateVO;
 import org.zywx.wbpalmstar.widgetone.dataservice.WWidgetData;
 
-import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
@@ -45,6 +41,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import static org.zywx.wbpalmstar.platform.certificates.Http.isCheckTrustCert;
 
@@ -96,36 +94,52 @@ public class EUExDownloaderMgr extends EUExBase {
 
     private void addTaskToDB(String url, String filePath, long fileSize) {
         if (selectTaskFromDB(url) == null) {
-            String sql = "INSERT INTO Downloader (url,filePath,fileSize,downSize,time) VALUES ('"
-                    + url
-                    + "','"
-                    + filePath
-                    + "','"
-                    + fileSize
-                    + "','0','"
-                    + getNowTime() + "')";
+            //取消字符串拼接的方式
+//            String sql = "INSERT INTO Downloader (url,filePath,fileSize,downSize,time) VALUES ('"
+//                    + url
+//                    + "','"
+//                    + filePath
+//                    + "','"
+//                    + fileSize
+//                    + "','0','"
+//                    + getNowTime() + "')";
             if (m_database == null) {
                 creatTaskTable();
             }
-            m_database.execSQL(sql);
+            ContentValues value=new ContentValues();
+            value.put("url",url);
+            value.put("filePath",filePath);
+            value.put("fileSize",fileSize);
+            value.put("downSize",0);
+            value.put("time",getNowTime());
+            m_database.insert("Downloader","url=?",value);
+//            m_database.execSQL(sql);
         }
     }
 
     private void updateTaskFromDB(String url, long downSize) {
-        String sql = "UPDATE Downloader SET time = '" + getNowTime()
-                + "',downSize ='" + downSize + "'  WHERE url = '" + url + "'";
+        //取消字符串拼接的方式
+//        String sql = "UPDATE Downloader SET time = '" + getNowTime()
+//                + "',downSize ='" + downSize + "'  WHERE url = '" + url + "'";
         if (m_database == null) {
             creatTaskTable();
         }
-        m_database.execSQL(sql);
+        ContentValues value=new ContentValues();
+        value.put("time",getNowTime());
+        value.put("downSize",downSize);
+        m_database.update("Downloader",value,"url =?",new String[]{url});
+//        m_database.execSQL(sql);
     }
 
     private String[] selectTaskFromDB(String url) {
-        String sql = "SELECT * FROM Downloader WHERE url = '" + url + "'";
+        //取消字符串拼接的方式
+//        String sql = "SELECT * FROM Downloader WHERE url = '" + url + "'";
         if (m_database == null) {
             creatTaskTable();
         }
-        Cursor cursor = m_database.rawQuery(sql, null);
+        //用query方式取代 字符串拼接的方式去查询
+        Cursor cursor= m_database.query("Downloader",null,"url=?",new String[]{url},null,null,null);
+//        Cursor cursor = m_database.rawQuery(sql, null);
         if (cursor.moveToNext()) {
             String[] reslt = new String[4];
             reslt[0] = cursor.getString(2);
@@ -140,11 +154,12 @@ public class EUExDownloaderMgr extends EUExBase {
     }
 
     private void deleteTaskFromDB(String url) throws SQLException {
-        String sql = "DELETE FROM Downloader WHERE url = '" + url + "'";
+//        String sql = "DELETE FROM Downloader WHERE url = '" + url + "'";
         if (m_database == null) {
             creatTaskTable();
         }
-        m_database.execSQL(sql);
+        m_database.delete("Downloader","url=?",new String[]{url});
+//        m_database.execSQL(sql);
     }
 
     public boolean createDownloader(String[] parm) {
@@ -440,6 +455,7 @@ public class EUExDownloaderMgr extends EUExBase {
                 mConnection.setInstanceFollowRedirects(true);
                 mConnection.setConnectTimeout(60*1000);
                 mConnection.setRequestMethod("GET");
+                mConnection.setRequestProperty("Accept-Encoding", "identity");
                 String cookie = getCookie(params[0]);
                 if (cookie != null && cookie.length() != 0) {
                     mConnection.setRequestProperty("Cookie", cookie);

@@ -1,8 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <uexplugins>
     <plugin
-        uexName="uexDownloaderMgr" version="4.1.6" build="6">
-        <info>6:（需要引擎4.1.0以上）修复含有空格不能下载的问题</info>
+        uexName="uexDownloaderMgr" version="4.3.8" build="8">
+        <info>8:（需要引擎4.1.0以上）部分手机下载没有回调问题</info>
+        <build>7:（需要引擎4.1.0以上）修改数据操作的方式,避免漏洞</build>
+        <build>6:（需要引擎4.1.0以上）修复含有空格不能下载的问题</build>
         <build>5:（需要引擎4.1.0以上）修复重定向链接不能下载的问题</build>
         <build>4:（需要引擎4.1.0以上）修复某些url不能下载的问题</build>
         <build>3:修复服务器返回2XX（非200、206）导致下载失败的问题，并修改自动处理重定向</build>
