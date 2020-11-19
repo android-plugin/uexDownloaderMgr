@@ -163,10 +163,11 @@ public class EUExDownloaderMgr extends EUExBase {
     }
 
     public boolean createDownloader(String[] parm) {
-        if (parm.length != 1) {
+        if (parm.length < 1) {
             return false;
         }
         String inOpCode = parm[0];
+        String disableAutoUrlEncode = parm[1];
         if (!BUtility.isNumeric(inOpCode)) {
             return false;
         }
@@ -178,7 +179,7 @@ public class EUExDownloaderMgr extends EUExBase {
             return false;
         }
         creatTaskTable();
-        DownLoadAsyncTask dlTask = new DownLoadAsyncTask();
+        DownLoadAsyncTask dlTask = new DownLoadAsyncTask(disableAutoUrlEncode);
         m_objectMap.put(Integer.parseInt(inOpCode), dlTask);
         jsCallback(F_CALLBACK_NAME_CREATEDOWNLOADER,
                 Integer.parseInt(inOpCode), EUExCallback.F_C_INT,
@@ -188,15 +189,18 @@ public class EUExDownloaderMgr extends EUExBase {
 
     public String create(String[] params){
         int id=-1;
+        String disableAutoUrlEncode = CreateVO.AUTO_URL_ENCODE_ENABLE;
         if (params!=null&&params.length>0){
             CreateVO createVO= DataHelper.gson.fromJson(params[0],CreateVO.class);
             id=createVO.Id;
+            disableAutoUrlEncode = createVO.disableAutoUrlEncode;
         }
         if (id==-1){
             id=generateId();
         }
         boolean result=createDownloader(new String[]{
-                String.valueOf(id)
+                String.valueOf(id),
+                disableAutoUrlEncode
         });
         return result?String.valueOf(id):null;
     }
@@ -407,6 +411,21 @@ public class EUExDownloaderMgr extends EUExBase {
         private boolean isError = false;
 
         private int callbackId=-1;
+
+        /**
+         * 是否自动转码，默认值为0，即需要自动转码
+         */
+        private String disableAutoUrlEncode = CreateVO.AUTO_URL_ENCODE_ENABLE;
+
+        public DownLoadAsyncTask() {
+        }
+
+        public DownLoadAsyncTask(String disableAutoUrlEncode) {
+            if (!TextUtils.isEmpty(disableAutoUrlEncode)){
+                this.disableAutoUrlEncode = disableAutoUrlEncode;
+            }
+        }
+
         @Override
         protected void onCancelled() {
             try {
@@ -430,11 +449,13 @@ public class EUExDownloaderMgr extends EUExBase {
                 Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
                 op = params[3];
 
+                if (CreateVO.AUTO_URL_ENCODE_ENABLE.equals(disableAutoUrlEncode)) {
 //                URL url = new URL(urlStr);
 //                URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
 //                URL targetUrl=uri.toURL();
 //                urlStr = uri.toString();
-                urlStr=URLEncoderURI.encode(urlStr,"UTF-8").replaceAll("\\+", "%20");//url = url.replaceAll("%3A", ":").replaceAll("%2F", "/");
+                    urlStr=URLEncoderURI.encode(urlStr,"UTF-8").replaceAll("\\+", "%20");//url = url.replaceAll("%3A", ":").replaceAll("%2F", "/");
+                }
                 URL targetUrl=new URL(urlStr);
                 if (urlStr.startsWith(BUtility.F_HTTP_PATH)) {
                     mConnection= (HttpURLConnection) targetUrl.openConnection();
