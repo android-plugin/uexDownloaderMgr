@@ -1,16 +1,15 @@
 <manifest package="org.zywx.wbpalmstar.widgetone.uexdownloadmgr"
-          xmlns:android="http://schemas.android.com/apk/res/android"
-          android:versionCode="1"
-          android:versionName="1.0">
-
-    <uses-sdk
-        android:minSdkVersion="8"
-        android:targetSdkVersion="15"/>
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:versionCode="1"
+    android:versionName="1.0"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <application
         android:name="org.zywx.wbpalmstar.widgetone.WidgetOneApplication"
         android:icon="@drawable/icon"
-        android:label="@string/app_name">
+        android:label="uexDownloaderMgr插件测试"
+        android:debuggable="true"
+        tools:replace="android:debuggable, android:label">
         <activity android:name="org.zywx.wbpalmstar.engine.LoadingActivity"
                   android:configChanges="keyboardHidden|orientation"
                   android:launchMode="standard"
