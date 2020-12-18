@@ -167,7 +167,10 @@ public class EUExDownloaderMgr extends EUExBase {
             return false;
         }
         String inOpCode = parm[0];
-        String disableAutoUrlEncode = parm[1];
+        String disableAutoUrlEncode = null;
+        if (parm.length > 1){
+            disableAutoUrlEncode = parm[1];
+        }
         if (!BUtility.isNumeric(inOpCode)) {
             return false;
         }
