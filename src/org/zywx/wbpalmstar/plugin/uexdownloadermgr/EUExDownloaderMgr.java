@@ -1,12 +1,16 @@
 package org.zywx.wbpalmstar.plugin.uexdownloadermgr;
 
+import android.Manifest;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.text.format.Time;
 import android.util.Log;
@@ -41,6 +45,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 public class EUExDownloaderMgr extends EUExBase {
+
+    private static final String TAG = "EUExDownloaderMgr";
+
+    private static final int REQUEST_PERMISSION_WHEN_DOWNLOAD_START = 10000;
 
     public final static String KEY_APPVERIFY = "appverify";
     public final static String XMAS_APPID = "x-mas-app-id";
@@ -208,7 +216,7 @@ public class EUExDownloaderMgr extends EUExBase {
     }
 
     /**
-     * 下载
+     * 下载操作
      *
      */
     public void download(String[] parm) {
@@ -245,6 +253,24 @@ public class EUExDownloaderMgr extends EUExBase {
                 BUtility.makeUrl(mBrwView.getCurrentUrl(), inSavePath),
                 mBrwView.getCurrentWidget().m_widgetPath,
                 mBrwView.getCurrentWidget().m_wgtType);
+        // 如果存放路径属于需要权限的路径，则检查权限
+        if (!TextUtils.isEmpty(inSavePath)
+                && !inSavePath.startsWith(mContext.getFilesDir().getParent())
+                && ContextCompat.checkSelfPermission(mContext, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+            BDebug.e(TAG, "download missing WRITE_EXTERNAL_STORAGE permission.");
+            // 权限缺失，需要请求权限，下载操作直接返回错误（如果异步返回的话，此处由于涉及到多opCode的情况，处理逻辑复杂，暂时使用简单的处理方式）
+            if (callbackId!=-1){
+                callbackToJs(callbackId,false,0,0,2);
+            }else{
+                errorCallback(
+                        Integer.parseInt(inOpCode),
+                        EUExCallback.F_E_UEXDOWNLOAD_DOWNLOAD_1,
+                        ResoureFinder.getInstance().getString(mContext,
+                                "plugin_downloadermgr_permission_missing_hint_msg"));
+            }
+            requsetPerssions(Manifest.permission.WRITE_EXTERNAL_STORAGE, EUExUtil.getString("plugin_downloadermgr_permission_request_hint_msg"), REQUEST_PERMISSION_WHEN_DOWNLOAD_START);
+            return;
+        }
         DownLoadAsyncTask dlTask = m_objectMap.get(Integer.parseInt(inOpCode));
         if (dlTask != null) {
             if (dlTask.state == F_STATE_CREATE_DOWNLOADER) {
@@ -394,6 +420,18 @@ public class EUExDownloaderMgr extends EUExBase {
 
         url_objectMap.clear();
         return true;
+    }
+
+    @Override
+    public void onRequestPermissionResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_PERMISSION_WHEN_DOWNLOAD_START){
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                BDebug.i(TAG, "onRequestPermissionResult: PERMISSION_GRANTED");
+            }else{
+                BDebug.i(TAG, "onRequestPermissionResult: NOT PERMISSION_GRANTED");
+            }
+        }
     }
 
     private class DownLoadAsyncTask extends AsyncTask<String, Integer, String> {

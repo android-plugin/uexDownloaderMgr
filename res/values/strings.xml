@@ -2,4 +2,6 @@
 <resources>
     <!-- uexDownloadMgr -->
     <string name="plugin_downloadermgr_error_parameter">参数错误</string>
+    <string name="plugin_downloadermgr_permission_request_hint_msg">下载操作可能需要申请本地存储权限，请允许。</string>
+    <string name="plugin_downloadermgr_permission_missing_hint_msg">缺失存储权限，无法进行下载操作</string>
 </resources>
