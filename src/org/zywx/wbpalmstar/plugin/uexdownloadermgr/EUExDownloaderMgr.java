@@ -11,7 +11,6 @@ import android.text.TextUtils;
 import android.text.format.Time;
 import android.util.Log;
 
-import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.zywx.wbpalmstar.base.BDebug;
@@ -22,7 +21,6 @@ import org.zywx.wbpalmstar.engine.EBrowserView;
 import org.zywx.wbpalmstar.engine.universalex.EUExBase;
 import org.zywx.wbpalmstar.engine.universalex.EUExCallback;
 import org.zywx.wbpalmstar.engine.universalex.EUExUtil;
-import org.zywx.wbpalmstar.platform.certificates.HX509HostnameVerifier;
 import org.zywx.wbpalmstar.platform.certificates.Http;
 import org.zywx.wbpalmstar.plugin.uexdownloadermgr.vo.CreateVO;
 import org.zywx.wbpalmstar.widgetone.dataservice.WWidgetData;
@@ -41,10 +39,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import javax.net.ssl.HttpsURLConnection;
-
-import static org.zywx.wbpalmstar.platform.certificates.Http.isCheckTrustCert;
 
 public class EUExDownloaderMgr extends EUExBase {
 
@@ -473,7 +467,7 @@ public class EUExDownloaderMgr extends EUExBase {
                                 appId);
                         mConnection=Http.getHttpsURLConnectionWithCert(targetUrl,cPassWord,certPath,mContext);
                     } else {
-                        mConnection=getHttpsURLConnection(targetUrl);
+                        mConnection=Http.getHttpsURLConnection(targetUrl);
                     }
                 }
                 mConnection.setInstanceFollowRedirects(true);
@@ -617,22 +611,6 @@ public class EUExDownloaderMgr extends EUExBase {
         public void setCallbackId(int callbackId) {
             this.callbackId = callbackId;
         }
-    }
-
-    public static HttpsURLConnection getHttpsURLConnection(URL url) throws Exception {
-        HttpsURLConnection mConnection = null;
-        mConnection = (HttpsURLConnection) url.openConnection();
-        javax.net.ssl.SSLSocketFactory ssFact = null;
-        ssFact = Http.getSSLSocketFactory();
-        ((HttpsURLConnection) mConnection).setSSLSocketFactory(ssFact);
-        if (!isCheckTrustCert()) {
-            ((HttpsURLConnection) mConnection)
-                    .setHostnameVerifier(new HX509HostnameVerifier());
-        } else {
-            ((HttpsURLConnection) mConnection)
-                    .setHostnameVerifier(SSLSocketFactory.STRICT_HOSTNAME_VERIFIER);
-        }
-        return mConnection;
     }
 
     private class DownloadPercentage {
