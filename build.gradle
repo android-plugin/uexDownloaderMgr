@@ -4,7 +4,7 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.1'
+        classpath 'com.android.tools.build:gradle:4.1.2'
     }
 }
 
@@ -22,16 +22,17 @@ repositories {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
-    implementation 'org.appcan:engine:4.4.27'
+    implementation 'org.appcan:engine:4.6.42'
 }
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 30
 //    buildToolsVersion "28.0.3"
     defaultConfig {
         // 应用的包名
         applicationId "org.zywx.wbpalmstar.widgetone.uexDownloaderMgr"
-        minSdkVersion 18
+        minSdkVersion 22
+        targetSdkVersion 28
         multiDexEnabled true
     }
     sourceSets {
